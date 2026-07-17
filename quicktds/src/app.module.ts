@@ -1,5 +1,6 @@
 import { ConfigModule, McpApp, Module, OAuthModule } from '@nitrostack/core';
 import { SystemHealthCheck } from './health/system.health.js';
+import { TdsModule } from './modules/tds/tds.module.js';
 
 @McpApp({
   module: AppModule,
@@ -29,7 +30,8 @@ import { SystemHealthCheck } from './health/system.health.js';
       audience: process.env.TOKEN_AUDIENCE,
       issuer: process.env.TOKEN_ISSUER,
       customValidation: async () => true
-    })
+    }),
+    TdsModule
   ],
   providers: [SystemHealthCheck]
 })

@@ -17,3 +17,6 @@ npx @modelcontextprotocol/inspector npx tsx src/index.ts
 
 OAuth is optional for local development. See `quicktds/OAUTH_SETUP.md` before enabling it
 for a deployment.
+
+The complete application workflow, fixture formats, MCP tools, and production commands are
+documented in `quicktds/README.md`.

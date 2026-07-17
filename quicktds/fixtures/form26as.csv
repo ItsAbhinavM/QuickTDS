@@ -1,0 +1,4 @@
+row_id,tan,deductor_name,transaction_date,quarter,section,gross_amount,tds_amount
+26AS-ALPHA-Q1,ALPA12345A,Alpha Retailers Limited,2025-06-30,Q1,194Q,1500000.00,1500.00
+26AS-METRO-Q1,METR12345B,Metro Distributors Limited,2025-06-30,Q1,194Q,900000.00,700.00
+26AS-NOVA-Q2,NOVA12345D,Nova Dealers Limited,2025-09-30,Q2,194C,800000.00,800.00

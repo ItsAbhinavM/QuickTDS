@@ -6,3 +6,4 @@ out/
 *.log
 *.sqlite
 *.sqlite3
+/quicktds/data/
