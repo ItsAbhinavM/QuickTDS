@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "npm --prefix quicktds run dev",
+    "start": "npm --prefix quicktds run start",
+    "inspector": "npm --prefix quicktds run inspector",
+    "test": "npm --prefix quicktds test"
   },
   "repository": {
     "type": "git",

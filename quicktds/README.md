@@ -44,6 +44,11 @@ MCP endpoint printed as `http://127.0.0.1:3100/mcp` is for MCP clients and keeps
 an event-stream connection open; it is not the application web page. Browsing
 to `http://127.0.0.1:3100` redirects to the UI during local development.
 
+The browser UI is itself an MCP client. It can load the demo, call each workflow
+tool, or import company metadata with the seven CSV templates under `fixtures/`.
+Form 26AS CSV is supported; AIS and raw Form 16A/ledger PDF extraction are not
+implemented and are shown as unsupported in the intake screen.
+
 If the server runs in a container or remote VM, bind it externally with:
 
 ```bash
@@ -77,6 +82,9 @@ Run validation:
 npm test
 npm run build
 ```
+
+The test suite includes a full stdio MCP client run covering initialization,
+tool discovery, the recovery workflow, refreshed Form 26AS, and invalid input.
 
 ## Demo Flow
 
