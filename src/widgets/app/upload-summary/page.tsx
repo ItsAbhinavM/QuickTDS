@@ -1,7 +1,7 @@
 'use client';
 
 import { useWidgetSDK } from '@nitrostack/widgets';
-import { EmptyState, Shell } from '../ui';
+import { EmptyState, formatLabel, Shell } from '../ui';
 
 interface UploadOutput {
   workspaceId: string;
@@ -24,7 +24,7 @@ export default function UploadSummary() {
         {Object.entries(data.imported).map(([label, count]) => (
           <article key={label}>
             <strong>{count}</strong>
-            <span>{label.replaceAll(/([A-Z])/g, ' $1')}</span>
+            <span>{formatLabel(label)}</span>
           </article>
         ))}
       </div>

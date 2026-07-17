@@ -1,7 +1,7 @@
 'use client';
 
 import { useWidgetSDK } from '@nitrostack/widgets';
-import { EmptyState, formatMoney, Shell, StatusPill } from '../ui';
+import { EmptyState, formatLabel, formatMoney, Shell, StatusPill } from '../ui';
 
 interface RecoveryCase {
   id: string;
@@ -27,7 +27,7 @@ export default function RecoveryCases() {
             <div className="case-main">
               <div><p className="eyebrow">{item.invoiceId} · {item.tan}</p><h2>{item.counterpartyName}</h2></div>
               <StatusPill status={item.status} />
-              <dl><div><dt>Issue</dt><dd>{item.issue.replaceAll('_', ' ')}</dd></div><div><dt>Amount</dt><dd>{formatMoney(item.amountPaise)}</dd></div><div><dt>Case ID</dt><dd>{item.id}</dd></div></dl>
+              <dl><div><dt>Issue</dt><dd>{formatLabel(item.issue)}</dd></div><div><dt>Amount</dt><dd>{formatMoney(item.amountPaise)}</dd></div><div><dt>Case ID</dt><dd>{item.id}</dd></div></dl>
               {item.correctionReference && <p className="correction">Correction reference: <strong>{item.correctionReference}</strong></p>}
             </div>
           </article>

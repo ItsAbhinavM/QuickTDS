@@ -61,7 +61,7 @@ export default function Reconciliation() {
       </section>
       <section className="table-wrap">
         <table>
-          <thead><tr><th>Reference</th><th>Deductor</th><th>Expected</th><th>Withheld</th><th>26AS</th><th>Difference</th><th>Status</th></tr></thead>
+          <thead><tr><th>Reference</th><th>Deductor</th><th className="number">Expected</th><th className="number">Withheld</th><th className="number">26AS</th><th className="number">Difference</th><th>Status</th></tr></thead>
           <tbody>{visible.map((item) => (
             <tr key={item.id}>
               <td><strong>{item.invoiceId}</strong><small>{item.quarter} · {item.section}</small></td>

@@ -3,8 +3,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport, StreamableHTTPError } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { FormEvent, useEffect, useRef, useState } from 'react';
-import { ToolResultGrid } from './result-preview';
-import { formatLabel } from './ui';
 
 const files = [
   ['counterpartiesCsv', 'Counterparties', 'counterparties.csv'],
@@ -59,16 +57,19 @@ export default function Home() {
   const [company, setCompany] = useState({ name: '', pan: '', financialYear: '2025-26' });
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File>>({});
   const [running, setRunning] = useState('');
-  const [result, setResult] = useState<{ toolName: string; data: unknown }>();
+  const [result, setResult] = useState<unknown>();
   const [error, setError] = useState('');
   const [endpointLabel, setEndpointLabel] = useState('localhost:3100/mcp');
-  const [previewMode, setPreviewMode] = useState<'grid' | 'json'>('grid');
 
   useEffect(() => {
     let cancelled = false;
+<<<<<<< Updated upstream
+=======
+    const client = new Client({ name: 'quick-tds-browser', version: '1.0.0' });
     const port = process.env.NEXT_PUBLIC_MCP_PORT || '3100';
     const endpoint = new URL(`${window.location.protocol}//${window.location.hostname}:${port}/mcp`);
     setEndpointLabel(`${endpoint.host}${endpoint.pathname}`);
+>>>>>>> Stashed changes
 
     connectMcpClient().then((client) => {
       if (cancelled) return client.close();
@@ -132,7 +133,7 @@ export default function Home() {
         const renewedClient = await reconnectMcpClient();
         output = toolOutput(await renewedClient.callTool({ name, arguments: args }));
       }
-      setResult({ toolName: name, data: output });
+      setResult(output);
       return output;
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : String(reason));
@@ -240,20 +241,9 @@ export default function Home() {
       </section>
 
       <section className="result-panel" aria-live="polite">
-        <div className="result-heading"><p className="eyebrow">Live MCP result</p><h2>{error ? 'Tool call failed' : result ? 'Tool call completed' : 'Ready for a tool call'}</h2></div>
-        <div className="result-preview">
-          {error ? <pre className="error-output">{error}</pre> : result ? <>
-            <div className="preview-tabs" role="tablist" aria-label="Result preview format">
-              <button type="button" role="tab" aria-selected={previewMode === 'grid'} aria-controls="result-grid" onClick={() => setPreviewMode('grid')}>Grid</button>
-              <button type="button" role="tab" aria-selected={previewMode === 'json'} aria-controls="result-json" onClick={() => setPreviewMode('json')}>JSON</button>
-              <code>{formatLabel(result.toolName)}</code>
-            </div>
-            {previewMode === 'grid'
-              ? <div id="result-grid" role="tabpanel"><ToolResultGrid toolName={result.toolName} result={result.data} /></div>
-              : <pre id="result-json" role="tabpanel">{JSON.stringify(result.data, null, 2)}</pre>}
-          </> : <p className="result-placeholder">Connect, load the demo, or import a complete CSV dataset.</p>}
-        </div>
-      </section>
+        <div><p className="eyebrow">Live MCP result</p><h2>{error ? 'Tool call failed' : result ? 'Tool call completed' : 'Ready for a tool call'}</h2></div>
+        <pre className={error ? 'error-output' : ''}>{error || (result ? JSON.stringify(result, null, 2) : 'Connect, load the demo, or import a complete CSV dataset.')}</pre>
+        </section>
 
       <section className="principle">
         <div>
