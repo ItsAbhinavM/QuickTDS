@@ -59,9 +59,17 @@ export default function Home() {
   const [running, setRunning] = useState('');
   const [result, setResult] = useState<unknown>();
   const [error, setError] = useState('');
+  const [endpointLabel, setEndpointLabel] = useState('localhost:3100/mcp');
 
   useEffect(() => {
     let cancelled = false;
+<<<<<<< Updated upstream
+=======
+    const client = new Client({ name: 'quick-tds-browser', version: '1.0.0' });
+    const port = process.env.NEXT_PUBLIC_MCP_PORT || '3100';
+    const endpoint = new URL(`${window.location.protocol}//${window.location.hostname}:${port}/mcp`);
+    setEndpointLabel(`${endpoint.host}${endpoint.pathname}`);
+>>>>>>> Stashed changes
 
     connectMcpClient().then((client) => {
       if (cancelled) return client.close();
@@ -175,7 +183,7 @@ export default function Home() {
         <p className="lede">Connect commercial records to Form 26AS, isolate the exact difference, and keep the recovery case open until the corrected credit appears.</p>
         <div className="command-card">
           <span className="prompt">›</span>
-          <code>MCP endpoint · {typeof window === 'undefined' ? 'localhost:3100/mcp' : `${window.location.hostname}:3100/mcp`}</code>
+          <code>MCP endpoint · {endpointLabel}</code>
           <button type="button" onClick={runDemo} disabled={connection !== 'connected' || Boolean(running)}>
             {running ? 'Running workflow…' : 'Run complete demo'}
           </button>
