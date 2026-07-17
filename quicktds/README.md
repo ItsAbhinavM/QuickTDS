@@ -1,56 +1,32 @@
-# NitroStack OAuth Template
+# Quick TDS MCP Server
 
-Template for OAuth 2.1-enabled MCP servers, including auth-aware tool patterns
-and a production-style project structure.
+NitroStack MCP server for the TDS Credit Rescue Rail described in `../project.md`.
 
-## What This Template Includes
+This base currently includes:
 
-- OAuth 2.1 oriented project setup
-- Tool and module structure for protected workflows
-- Environment-based configuration (`.env`)
-- Widget-ready frontend integration
+- MCP application bootstrap and health checks
+- Optional OAuth 2.1 configuration
+- A clean Next.js widget workspace
+- No domain tools yet; TDS features can be added under `src/modules/`
 
-## Quick Start
+## Setup
 
 ```bash
-npx @nitrostack/cli init my-oauth-app --template typescript-oauth
-cd my-oauth-app
+npm install
+npm run install:all
+cp .env.example .env
 npm run dev
 ```
 
-## Configuration
+OAuth is disabled by default for local development. Set `OAUTH_REQUIRED=true` only after
+configuring a token verifier. See `OAUTH_SETUP.md` for details.
 
-1. Copy `.env.example` to `.env`
-2. Configure OAuth provider values
-3. (Optional) Configure provider-specific API keys
-
-For detailed setup, see `OAUTH_SETUP.md`.
-
-## Common Commands
+## Commands
 
 ```bash
 npm run dev
 npm run build
 npm start
+npm run widget -- run dev
+npm run widget -- run build
 ```
-
-## NitroStudio
-
-Use NitroStudio to test auth flows, inspect tool requests, and validate behavior.
-
-- Download: <https://nitrostack.ai/studio>
-- Studio: <https://nitrostack.ai/studio>
-
-## Links
-
-- Docs: <https://docs.nitrostack.ai>
-- OAuth docs: <https://docs.nitrostack.ai/sdk/typescript/11-oauth-authentication>
-- Main repository: <https://github.com/nitrocloudofficial/nitrostack>
-
-## Community
-
-- Discord: <https://discord.gg/uVWey6UhuD>
-- X: <https://x.com/nitrostackai>
-- YouTube: <https://www.youtube.com/@nitrostackai>
-- LinkedIn: <https://linkedin.com/company/nitrostack-ai/>
-- GitHub: <https://github.com/nitrostackai>
