@@ -17,10 +17,11 @@ Upload company data
 -> Verify resolution
 ```
 
-The server persists each workspace under `data/workspaces/` in development. In production it
-uses `QUICK_TDS_DATA_DIR`, defaulting to `/data/workspaces` for the NitroCloud volume. Startup
-performs a real write check and stops with a configuration error if the mounted directory is
-not writable. This JSON store is appropriate for one server instance; it is not a concurrent
+The server persists each workspace under `data/workspaces/` when that directory is writable.
+In read-only containers it falls back to temporary storage. Set `QUICK_TDS_DATA_DIR` only when
+the platform has attached a writable persistent volume at that path. Startup performs a real
+write check and stops with a configuration error if an explicitly configured directory is not
+writable. This JSON store is appropriate for one server instance; it is not a concurrent
 multi-instance database.
 
 ## Install
@@ -74,16 +75,20 @@ npm run start:prod
 
 ### NitroCloud Storage
 
-Attach the project's persistent volume at `/data` and set this NitroCloud environment variable:
+NitroCloud's current public deployment flow does not show a persistent volume mount in its
+generated container. Leave `QUICK_TDS_DATA_DIR` unset so the tools use writable temporary
+storage. Do not set it to `/data/workspaces` unless NitroCloud support or the project dashboard
+has actually attached a writable volume at `/data`.
+
+If NitroCloud provides a volume, set the environment variable to its real mount path, for example:
 
 ```text
-QUICK_TDS_DATA_DIR=/data/workspaces
+QUICK_TDS_DATA_DIR=<actual-volume-mount>/workspaces
 ```
 
-The production entry point also defaults to this path, but the volume must be attached by
-NitroCloud. A directory path in application code cannot create a cloud volume. Keep the service
-at one replica while it uses the JSON workspace store; use shared database storage before
-enabling multiple replicas.
+A directory path in application code cannot create a cloud volume. Temporary storage allows
+tool execution but can be lost on restart or scale-to-zero. Durable autoscaled deployment
+requires shared database or object storage rather than this local JSON store.
 
 Run only the widget frontend during UI work:
 
