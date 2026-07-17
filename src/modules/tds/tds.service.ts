@@ -93,9 +93,9 @@ export class TdsService {
   upload(data: UploadData) {
     const workspaceId = this.workspaceId(data.workspaceId);
     const company: Company = {
-      name: data.company.name.trim(),
-      pan: normalizePan(data.company.pan),
-      financialYear: data.company.financialYear.trim()
+      name: (data.company?.name || '').trim(),
+      pan: normalizePan(data.company?.pan || ''),
+      financialYear: (data.company?.financialYear || '').trim()
     };
     if (!company.name || !/^\d{4}-\d{2}$/.test(company.financialYear)) {
       throw new Error('Company name and financial year in YYYY-YY format are required');
@@ -488,7 +488,7 @@ export class TdsService {
   }
 
   private workspaceId(value: string): string {
-    const normalized = value.trim().toLowerCase();
+    const normalized = (value || '').trim().toLowerCase();
     if (!/^[a-z0-9_-]{2,50}$/.test(normalized)) throw new Error('workspaceId must contain 2-50 letters, numbers, underscores, or hyphens');
     return normalized;
   }
