@@ -29,7 +29,7 @@ function start(label, command, args, options = {}) {
     cwd: options.cwd || root,
     env: { ...process.env, ...options.env },
     stdio: 'inherit',
-    shell: process.platform == 'linux'
+    shell: true
   });
   children.push(child);
   child.once('exit', (code, signal) => {
@@ -54,7 +54,7 @@ try {
   await Promise.all([checkPort(mcpPort), checkPort(widgetPort)]);
 
   console.log('Compiling Quick TDS server...');
-  const compile = spawnSync('npx', ['tsc'], { cwd: root, stdio: 'inherit', shell: process.platform == 'linux' });
+  const compile = spawnSync('npx', ['tsc'], { cwd: root, stdio: 'inherit', shell: true });
   if (compile.status !== 0) process.exit(compile.status || 1);
 
   console.log('\nQuick TDS development services');

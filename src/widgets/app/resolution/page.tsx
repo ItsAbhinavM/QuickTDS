@@ -12,8 +12,20 @@ interface ResolutionOutput {
 }
 
 export default function Resolution() {
-  const data = useWidgetSDK().getToolOutput<ResolutionOutput>();
-  if (!data) return <EmptyState message="Comparing Form 26AS snapshots…" />;
+  const data = useWidgetSDK().getToolOutput<ResolutionOutput | string>();
+
+  if (typeof data === 'string') {
+    return (
+      <Shell eyebrow="Error" title="Resolution failed to load">
+        <section className="notice" style={{ borderLeft: '4px solid var(--red)', background: 'rgba(244, 63, 94, 0.05)', color: 'var(--red)' }}>
+          <strong>Resolution Error</strong>
+          <p style={{ margin: 0, fontSize: 13, textTransform: 'none' }}>{data}</p>
+        </section>
+      </Shell>
+    );
+  }
+
+  if (!data || !data.summary) return <EmptyState message="Comparing Form 26AS snapshots…" />;
 
   return (
     <Shell eyebrow="Statement replay" title="Refreshed 26AS verified">

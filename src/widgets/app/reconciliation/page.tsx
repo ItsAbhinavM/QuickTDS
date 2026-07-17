@@ -35,9 +35,21 @@ interface Output {
 }
 
 export default function Reconciliation() {
-  const data = useWidgetSDK().getToolOutput<Output>();
+  const data = useWidgetSDK().getToolOutput<Output | string>();
   const [status, setStatus] = useState('ALL');
   const [counterparty, setCounterparty] = useState('ALL');
+
+  if (typeof data === 'string') {
+    return (
+      <Shell eyebrow="Error" title="Ledger failed to load">
+        <section className="notice" style={{ borderLeft: '4px solid var(--red)', background: 'rgba(244, 63, 94, 0.05)', color: 'var(--red)' }}>
+          <strong>Reconciliation Error</strong>
+          <p style={{ margin: 0, fontSize: 13, textTransform: 'none' }}>{data}</p>
+        </section>
+      </Shell>
+    );
+  }
+
   if (!data || !data.summary) return <EmptyState message="Preparing reconciliation ledger…" />;
 
   const counterparties = [...new Set(data.decisions.map((item) => item.counterpartyName))];

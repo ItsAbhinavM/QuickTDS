@@ -84,19 +84,19 @@ export function hash(content: string): string {
 }
 
 export function normalizeId(value: string, field: string): string {
-  const normalized = value.trim().toUpperCase();
+  const normalized = (value || '').trim().toUpperCase();
   if (!normalized) throw new Error(`${field} is required`);
   return normalized;
 }
 
 export function normalizeTan(value: string, field: string): string {
-  const normalized = value.toUpperCase().replace(/\s/g, '');
+  const normalized = (value || '').toUpperCase().replace(/\s/g, '');
   if (!/^[A-Z]{4}[0-9]{5}[A-Z]$/.test(normalized)) throw new Error(`${field} is not a valid TAN`);
   return normalized;
 }
 
 export function normalizePan(value: string): string {
-  const normalized = value.toUpperCase().replace(/\s/g, '');
+  const normalized = (value || '').toUpperCase().replace(/\s/g, '');
   if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(normalized)) throw new Error('company PAN is invalid');
   return normalized;
 }

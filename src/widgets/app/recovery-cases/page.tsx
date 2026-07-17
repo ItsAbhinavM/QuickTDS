@@ -15,8 +15,21 @@ interface RecoveryCase {
 }
 
 export default function RecoveryCases() {
-  const data = useWidgetSDK().getToolOutput<{ workspaceId: string; cases: RecoveryCase[] }>();
-  if (!data) return <EmptyState message="Opening recovery register…" />;
+  const sdkData = useWidgetSDK().getToolOutput<{ workspaceId: string; cases: RecoveryCase[] }>();
+  const data = sdkData;
+
+  if (typeof data === 'string') {
+    return (
+      <Shell eyebrow="Error" title="Cases failed to load">
+        <section className="notice" style={{ borderLeft: '4px solid var(--red)', background: 'rgba(244, 63, 94, 0.05)', color: 'var(--red)' }}>
+          <strong>Recovery Register Error</strong>
+          <p style={{ margin: 0, fontSize: 13, textTransform: 'none' }}>{data}</p>
+        </section>
+      </Shell>
+    );
+  }
+
+  if (!data || !data.cases) return <EmptyState message="Opening recovery register…" />;
 
   return (
     <Shell eyebrow="Recovery register" title={`${data.cases.length} cases require attention`}>
