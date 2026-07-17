@@ -13,6 +13,19 @@ const file = (name) => readFileSync(path.join(fixtures, name), 'utf8');
 
 test.after(() => rmSync(dataDirectory, { recursive: true, force: true }));
 
+test('rejects an explicitly configured unwritable data path at startup', () => {
+  const original = process.env.QUICK_TDS_DATA_DIR;
+  process.env.QUICK_TDS_DATA_DIR = '/dev/null/workspaces';
+  try {
+    assert.throws(
+      () => new TdsService(),
+      /QUICK_TDS_DATA_DIR is not writable: \/dev\/null\/workspaces/
+    );
+  } finally {
+    process.env.QUICK_TDS_DATA_DIR = original;
+  }
+});
+
 test('runs the complete TDS recovery workflow deterministically', () => {
   const service = new TdsService();
   const workspaceId = 'workflow-test';

@@ -1,5 +1,6 @@
-import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import {
   daysBetween,
@@ -64,7 +65,30 @@ function strongestEvidence(values: Payment['evidence'][]): Payment['evidence'] |
 }
 
 export class TdsService {
-  private readonly root = process.env.QUICK_TDS_DATA_DIR || path.join(process.cwd(), 'data', 'workspaces');
+  private readonly root: string;
+
+  constructor() {
+    const configuredRoot = process.env.QUICK_TDS_DATA_DIR;
+    const localRoot = path.join(process.cwd(), 'data', 'workspaces');
+    try {
+      mkdirSync(configuredRoot || localRoot, { recursive: true });
+      this.root = configuredRoot || localRoot;
+      this.verifyWritable();
+    } catch (error) {
+      if (configuredRoot) {
+        throw new Error(`QUICK_TDS_DATA_DIR is not writable: ${configuredRoot}`, { cause: error });
+      }
+      this.root = path.join(tmpdir(), 'quick-tds', 'workspaces');
+      mkdirSync(this.root, { recursive: true });
+      this.verifyWritable();
+    }
+  }
+
+  private verifyWritable() {
+    const probe = path.join(this.root, `.write-test-${randomUUID()}`);
+    writeFileSync(probe, 'ok', { flag: 'wx' });
+    unlinkSync(probe);
+  }
 
   upload(data: UploadData) {
     const workspaceId = this.workspaceId(data.workspaceId);
@@ -374,8 +398,10 @@ export class TdsService {
     const rows = parseCsv(content);
     requireColumns(rows, ['payment_id', 'counterparty_id', 'date', 'gross_amount', 'net_amount', 'tds_amount', 'bank_account_id', 'bank_reference', 'evidence'], 'payments');
     return rows.map((row, index) => {
-      const evidence = required(row, 'evidence', `payments row ${index + 2}`) as Payment['evidence'];
-      if (!['PAYMENT_ADVICE', 'LEDGER_ENTRY', 'FORM_16A', 'INFERRED'].includes(evidence)) throw new Error(`Invalid payment evidence ${evidence}`);
+      const evidence = required(row, 'evidence', `payments row ${index + 2}`).toUpperCase() as Payment['evidence'];
+      if (!['PAYMENT_ADVICE', 'LEDGER_ENTRY', 'FORM_16A', 'INFERRED'].includes(evidence)) {
+        throw new Error(`payments row ${index + 2}.evidence must be PAYMENT_ADVICE, LEDGER_ENTRY, FORM_16A, or INFERRED`);
+      }
       return {
         id: normalizeId(required(row, 'payment_id', `payments row ${index + 2}`), 'payment_id'),
         counterpartyId: normalizeId(required(row, 'counterparty_id', `payments row ${index + 2}`), 'counterparty_id'),

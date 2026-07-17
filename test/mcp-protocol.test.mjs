@@ -49,6 +49,11 @@ test('exposes and runs the recovery workflow through MCP stdio', async () => {
     await client.connect(transport);
     const tools = await client.listTools();
     assert.deepEqual(tools.tools.map((tool) => tool.name).sort(), expectedTools);
+    const uploadTool = tools.tools.find((tool) => tool.name === 'upload_company_data');
+    assert.match(uploadTool.inputSchema.properties.paymentsCsv.description, /PAYMENT_ADVICE.*FORM_16A/);
+
+    const demo = structured(await client.callTool({ name: 'load_quick_tds_demo', arguments: {} }));
+    assert.equal(demo.workspaceId, 'quick-motors-demo');
 
     const workspaceId = 'mcp-protocol-test';
     const imported = structured(await client.callTool({

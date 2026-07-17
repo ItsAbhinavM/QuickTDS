@@ -17,8 +17,11 @@ Upload company data
 -> Verify resolution
 ```
 
-The server persists each workspace under `data/workspaces/`. This local JSON store is
-appropriate for the demo and one server process; it is not intended as production storage.
+The server persists each workspace under `data/workspaces/` in development. In production it
+uses `QUICK_TDS_DATA_DIR`, defaulting to `/data/workspaces` for the NitroCloud volume. Startup
+performs a real write check and stops with a configuration error if the mounted directory is
+not writable. This JSON store is appropriate for one server instance; it is not a concurrent
+multi-instance database.
 
 ## Install
 
@@ -68,6 +71,19 @@ Build and start the production bundle:
 npm run build
 npm run start:prod
 ```
+
+### NitroCloud Storage
+
+Attach the project's persistent volume at `/data` and set this NitroCloud environment variable:
+
+```text
+QUICK_TDS_DATA_DIR=/data/workspaces
+```
+
+The production entry point also defaults to this path, but the volume must be attached by
+NitroCloud. A directory path in application code cannot create a cloud volume. Keep the service
+at one replica while it uses the JSON workspace store; use shared database storage before
+enabling multiple replicas.
 
 Run only the widget frontend during UI work:
 

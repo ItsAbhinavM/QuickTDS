@@ -8,19 +8,19 @@ const WorkspaceSchema = z.object({
 });
 
 const UploadSchema = z.object({
-  workspaceId: z.string().min(2),
+  workspaceId: z.string().min(2).describe('Unique workspace ID using 2-50 letters, numbers, underscores, or hyphens'),
   company: z.object({
-    name: z.string().min(1),
-    pan: z.string().min(10),
+    name: z.string().min(1).describe('Legal company name'),
+    pan: z.string().regex(/^[A-Za-z]{5}[0-9]{4}[A-Za-z]$/).describe('10-character Indian PAN'),
     financialYear: z.string().describe('Financial year in YYYY-YY format')
   }),
-  counterpartiesCsv: z.string(),
-  bankAccountsCsv: z.string(),
-  invoicesCsv: z.string(),
-  paymentsCsv: z.string(),
-  allocationsCsv: z.string(),
-  bankTransactionsCsv: z.string(),
-  form26asCsv: z.string()
+  counterpartiesCsv: z.string().min(1).describe('CSV with exact headers: counterparty_id,name,tan,contact_email'),
+  bankAccountsCsv: z.string().min(1).describe('CSV with exact headers: account_id,bank_name,masked_account,account_type'),
+  invoicesCsv: z.string().min(1).describe('CSV with exact headers: invoice_id,counterparty_id,date,quarter,transaction_type,gross_amount,tds_base,tds_applicable,section,rate_percent. Dates use YYYY-MM-DD; quarter is Q1-Q4; tds_applicable is true or false.'),
+  paymentsCsv: z.string().min(1).describe('CSV with exact headers: payment_id,counterparty_id,date,gross_amount,net_amount,tds_amount,bank_account_id,bank_reference,evidence. Evidence must be PAYMENT_ADVICE, LEDGER_ENTRY, FORM_16A, or INFERRED.'),
+  allocationsCsv: z.string().min(1).describe('CSV with exact headers: allocation_id,payment_id,invoice_id,amount'),
+  bankTransactionsCsv: z.string().min(1).describe('CSV with exact headers: transaction_id,bank_account_id,date,amount,reference,narration'),
+  form26asCsv: z.string().min(1).describe('CSV with exact headers: row_id,tan,deductor_name,transaction_date,quarter,section,gross_amount,tds_amount')
 });
 
 @Injectable({ deps: [TdsService] })
@@ -35,12 +35,13 @@ export class TdsTools {
     })
   })
   @Widget('upload-summary')
-  async loadDemo(input: { workspaceId: string }, ctx: ExecutionContext) {
-    ctx.logger.info('Loading Quick TDS demo', { workspaceId: input.workspaceId });
+  async loadDemo(input: { workspaceId?: string }, ctx: ExecutionContext) {
+    const workspaceId = input.workspaceId ?? 'quick-motors-demo';
+    ctx.logger.info('Loading Quick TDS demo', { workspaceId });
     const fixtures = path.join(process.cwd(), 'fixtures');
     const company = JSON.parse(readFileSync(path.join(fixtures, 'company.json'), 'utf8'));
     return this.service.upload({
-      workspaceId: input.workspaceId,
+      workspaceId,
       company,
       counterpartiesCsv: readFileSync(path.join(fixtures, 'counterparties.csv'), 'utf8'),
       bankAccountsCsv: readFileSync(path.join(fixtures, 'bank-accounts.csv'), 'utf8'),
