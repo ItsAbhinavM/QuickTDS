@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { useWidgetSDK } from '@nitrostack/widgets';
+import { useApp, useHostStyles, type McpUiToolResultNotification } from '@modelcontextprotocol/ext-apps/react';
 
 const displayTerms: Record<string, string> = {
   ais: 'AIS',
@@ -58,4 +60,54 @@ export function StatusPill({ status }: { status: string }) {
 
 export function EmptyState({ message = 'Waiting for tool output…' }: { message?: string }) {
   return <div className="empty"><span className="spinner" />{message}</div>;
+}
+
+function extractToolResult<T>(result: unknown): T | string | null {
+  if (!result || typeof result !== 'object') return null;
+
+  const output = result as McpUiToolResultNotification['params'];
+  if (output.structuredContent) return output.structuredContent as T;
+
+  const text = output.content
+    ?.filter((item) => item.type === 'text')
+    .map((item) => item.text)
+    .join('\n');
+
+  if (!text) return null;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return text;
+  }
+}
+
+export function useWidgetBridge<T>() {
+  const sdk = useWidgetSDK();
+  const sdkData = sdk.getToolOutput<T>();
+  const [mcpData, setMcpData] = useState<T | string | null>(null);
+  const { app, isConnected } = useApp({
+    appInfo: { name: 'quick-tds-widgets', version: '1.0.0' },
+    capabilities: {},
+    onAppCreated: (app) => {
+      app.ontoolresult = (result) => {
+        const data = extractToolResult<T>(result);
+        if (data !== null) setMcpData(data);
+      };
+    }
+  });
+  useHostStyles(app, app?.getHostContext());
+
+  async function callTool(name: string, args: Record<string, unknown>) {
+    const result = isConnected && app
+      ? await app.callServerTool({ name, arguments: args })
+      : await sdk.callTool(name, args);
+    const data = extractToolResult<T>(result);
+    if (data !== null) setMcpData(data);
+    return result;
+  }
+
+  return {
+    data: mcpData !== null ? mcpData : (sdkData as T | string | null),
+    callTool
+  };
 }

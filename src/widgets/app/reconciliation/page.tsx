@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useWidgetSDK } from '@nitrostack/widgets';
-import { EmptyState, formatMoney, Shell, StatusPill } from '../ui';
+import { EmptyState, formatMoney, Shell, StatusPill, useWidgetBridge } from '../ui';
 
 interface Decision {
   id: string;
@@ -35,7 +34,7 @@ interface Output {
 }
 
 export default function Reconciliation() {
-  const data = useWidgetSDK().getToolOutput<Output | string>();
+  const { data } = useWidgetBridge<Output>();
   const [status, setStatus] = useState('ALL');
   const [counterparty, setCounterparty] = useState('ALL');
 

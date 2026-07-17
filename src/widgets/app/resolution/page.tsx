@@ -1,7 +1,6 @@
 'use client';
 
-import { useWidgetSDK } from '@nitrostack/widgets';
-import { EmptyState, formatMoney, Shell, StatusPill } from '../ui';
+import { EmptyState, formatMoney, Shell, StatusPill, useWidgetBridge } from '../ui';
 
 interface ResolutionOutput {
   workspaceId: string;
@@ -12,7 +11,7 @@ interface ResolutionOutput {
 }
 
 export default function Resolution() {
-  const data = useWidgetSDK().getToolOutput<ResolutionOutput | string>();
+  const { data } = useWidgetBridge<ResolutionOutput>();
 
   if (typeof data === 'string') {
     return (

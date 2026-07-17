@@ -1,7 +1,6 @@
 'use client';
 
-import { useWidgetSDK } from '@nitrostack/widgets';
-import { EmptyState, formatLabel, formatMoney, Shell, StatusPill } from '../ui';
+import { EmptyState, formatLabel, formatMoney, Shell, StatusPill, useWidgetBridge } from '../ui';
 
 interface RecoveryCase {
   id: string;
@@ -15,8 +14,7 @@ interface RecoveryCase {
 }
 
 export default function RecoveryCases() {
-  const sdkData = useWidgetSDK().getToolOutput<{ workspaceId: string; cases: RecoveryCase[] }>();
-  const data = sdkData;
+  const { data } = useWidgetBridge<{ workspaceId: string; cases: RecoveryCase[] }>();
 
   if (typeof data === 'string') {
     return (

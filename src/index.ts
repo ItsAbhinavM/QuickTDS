@@ -15,6 +15,7 @@ async function bootstrap() {
       process.env.AUTH_SERVER_URL ||= 'http://localhost:8080/auth';
     }
 
+    process.env.NITROSTACK_APP_MODE ??= 'universal';
     const server = await McpApplicationFactory.create(AppModule);
     await server.start();
 
