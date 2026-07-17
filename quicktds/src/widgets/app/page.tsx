@@ -1,7 +1,7 @@
 'use client';
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { StreamableHTTPClientTransport, StreamableHTTPError } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 
 const files = [
@@ -41,8 +41,17 @@ function toolOutput(rawResult: Awaited<ReturnType<Client['callTool']>>): unknown
   }
 }
 
+async function connectMcpClient(): Promise<Client> {
+  const client = new Client({ name: 'quick-tds-browser', version: '1.0.0' });
+  const port = process.env.NEXT_PUBLIC_MCP_PORT || '3100';
+  const endpoint = new URL(`${window.location.protocol}//${window.location.hostname}:${port}/mcp`);
+  await client.connect(new StreamableHTTPClientTransport(endpoint));
+  return client;
+}
+
 export default function Home() {
   const clientRef = useRef<Client | null>(null);
+  const reconnectRef = useRef<Promise<Client> | null>(null);
   const [connection, setConnection] = useState<'connecting' | 'connected' | 'offline'>('connecting');
   const [workspaceId, setWorkspaceId] = useState('quick-motors-demo');
   const [company, setCompany] = useState({ name: '', pan: '', financialYear: '2025-26' });
@@ -53,11 +62,8 @@ export default function Home() {
 
   useEffect(() => {
     let cancelled = false;
-    const client = new Client({ name: 'quick-tds-browser', version: '1.0.0' });
-    const port = process.env.NEXT_PUBLIC_MCP_PORT || '3100';
-    const endpoint = new URL(`${window.location.protocol}//${window.location.hostname}:${port}/mcp`);
 
-    client.connect(new StreamableHTTPClientTransport(endpoint)).then(() => {
+    connectMcpClient().then((client) => {
       if (cancelled) return client.close();
       clientRef.current = client;
       setConnection('connected');
@@ -70,10 +76,40 @@ export default function Home() {
 
     return () => {
       cancelled = true;
+      reconnectRef.current = null;
+      const client = clientRef.current;
       clientRef.current = null;
-      void client.close();
+      if (client) void client.close();
     };
   }, []);
+
+  async function reconnectMcpClient(): Promise<Client> {
+    if (reconnectRef.current) return reconnectRef.current;
+
+    const reconnecting = (async () => {
+      setConnection('connecting');
+      const staleClient = clientRef.current;
+      clientRef.current = null;
+      if (staleClient) await staleClient.close().catch(() => undefined);
+
+      try {
+        const client = await connectMcpClient();
+        clientRef.current = client;
+        setConnection('connected');
+        return client;
+      } catch (reason) {
+        setConnection('offline');
+        throw reason;
+      }
+    })();
+
+    reconnectRef.current = reconnecting;
+    try {
+      return await reconnecting;
+    } finally {
+      if (reconnectRef.current === reconnecting) reconnectRef.current = null;
+    }
+  }
 
   async function callTool(name: string, args: Record<string, unknown>) {
     const client = clientRef.current;
@@ -81,7 +117,14 @@ export default function Home() {
     setRunning(name);
     setError('');
     try {
-      const output = toolOutput(await client.callTool({ name, arguments: args }));
+      let output: unknown;
+      try {
+        output = toolOutput(await client.callTool({ name, arguments: args }));
+      } catch (reason) {
+        if (!(reason instanceof StreamableHTTPError) || reason.code !== 400) throw reason;
+        const renewedClient = await reconnectMcpClient();
+        output = toolOutput(await renewedClient.callTool({ name, arguments: args }));
+      }
       setResult(output);
       return output;
     } catch (reason) {

@@ -1,0 +1,7 @@
+transaction_id,bank_account_id,date,amount,reference,narration
+BANK-TX-01,HDFC-CURRENT,2025-04-20,999000.00,UTR-ALPHA-01,Alpha invoice receipt
+BANK-TX-02,HDFC-CURRENT,2025-05-22,299700.00,UTR-ALPHA-02,Alpha part payment
+BANK-TX-03,ICICI-CURRENT,2025-05-28,199800.00,UTR-ALPHA-03,Alpha final payment
+BANK-TX-04,HDFC-CURRENT,2025-06-08,899300.00,UTR-METRO-01,Metro invoice receipt
+BANK-TX-05,HORIZON-FD,2025-06-30,90000.00,INT-FD-4102,Fixed deposit interest credit
+BANK-TX-06,ICICI-CURRENT,2025-07-16,799200.00,UTR-NOVA-01,Nova invoice receipt

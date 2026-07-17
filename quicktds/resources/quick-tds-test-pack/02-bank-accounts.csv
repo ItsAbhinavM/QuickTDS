@@ -1,0 +1,4 @@
+account_id,bank_name,masked_account,account_type
+HDFC-CURRENT,HDFC Bank,XXXX1234,CURRENT
+ICICI-CURRENT,ICICI Bank,XXXX9087,CURRENT
+HORIZON-FD,Horizon Bank,FD-XX4102,FIXED_DEPOSIT

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -17,6 +17,8 @@ const expectedTools = [
   'upload_company_data',
   'verify_refreshed_26as'
 ];
+const resourceDirectory = path.join(process.cwd(), 'resources', 'quick-tds-test-pack');
+const resource = (name) => readFileSync(path.join(resourceDirectory, name), 'utf8');
 
 function structured(result) {
   assert.notEqual(result.isError, true);
@@ -50,8 +52,18 @@ test('exposes and runs the recovery workflow through MCP stdio', async () => {
 
     const workspaceId = 'mcp-protocol-test';
     const imported = structured(await client.callTool({
-      name: 'load_quick_tds_demo',
-      arguments: { workspaceId }
+      name: 'upload_company_data',
+      arguments: {
+        workspaceId,
+        company: { name: 'Quick Motors Private Limited', pan: 'AAAAA1234A', financialYear: '2025-26' },
+        counterpartiesCsv: resource('01-counterparties.csv'),
+        bankAccountsCsv: resource('02-bank-accounts.csv'),
+        invoicesCsv: resource('03-invoice-ledger.csv'),
+        paymentsCsv: resource('04-payments.csv'),
+        allocationsCsv: resource('05-payment-allocations.csv'),
+        bankTransactionsCsv: resource('06-bank-transactions.csv'),
+        form26asCsv: resource('07-form26as-original.csv')
+      }
     }));
     assert.equal(imported.imported.invoices, 5);
 
@@ -63,13 +75,23 @@ test('exposes and runs the recovery workflow through MCP stdio', async () => {
 
     const reconciliation = structured(await client.callTool({ name: 'run_26as_reconciliation', arguments: { workspaceId } }));
     assert.equal(reconciliation.summary.recoverableGapPaise, 1_000_000);
+    assert.deepEqual(
+      Object.fromEntries(reconciliation.decisions.map((decision) => [decision.invoiceId, decision.status])),
+      {
+        'INV-1001': 'MATCHED',
+        'INV-1002': 'MATCHED',
+        'INT-FD-01': 'PAN_ERROR_SUSPECTED',
+        'INV-2001': 'AMOUNT_MISMATCH',
+        'INV-3001': 'SECTION_MISMATCH'
+      }
+    );
 
     const cases = structured(await client.callTool({ name: 'create_recovery_cases', arguments: { workspaceId } }));
     assert.equal(cases.cases.length, 3);
 
     const refreshed = structured(await client.callTool({
       name: 'verify_refreshed_26as',
-      arguments: { workspaceId, useDemoFixture: true }
+      arguments: { workspaceId, form26asCsv: resource('08-form26as-refreshed.csv') }
     }));
     assert.equal(refreshed.resolvedCaseIds.length, 2);
 
