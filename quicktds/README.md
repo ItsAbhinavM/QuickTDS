@@ -39,6 +39,25 @@ Start the complete MCP server and widget development environment:
 npm run dev
 ```
 
+Wait for Next.js to report `Ready`, then open `http://127.0.0.1:3101`. The
+MCP endpoint printed as `http://127.0.0.1:3100/mcp` is for MCP clients and keeps
+an event-stream connection open; it is not the application web page. Browsing
+to `http://127.0.0.1:3100` redirects to the UI during local development.
+
+If the server runs in a container or remote VM, bind it externally with:
+
+```bash
+HOST=0.0.0.0 npm run dev
+```
+
+The development ports can be changed with `MCP_DEV_PORT` and `WIDGET_DEV_PORT`.
+
+Run the MCP Inspector separately with:
+
+```bash
+npm run inspector
+```
+
 Build and start the production bundle:
 
 ```bash

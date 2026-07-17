@@ -17,6 +17,13 @@ async function bootstrap() {
 
     const server = await McpApplicationFactory.create(AppModule);
     await server.start();
+
+    const uiUrl = process.env.QUICK_TDS_UI_URL;
+    if (uiUrl) {
+      server.getHttpTransport()?.getApp?.().get('/', (_request: unknown, response: { redirect(status: number, url: string): void }) => {
+        response.redirect(302, uiUrl);
+      });
+    }
   } catch (error) {
     console.error('Failed to start Quick TDS MCP server:', error);
     process.exit(1);

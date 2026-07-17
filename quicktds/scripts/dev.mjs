@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { spawn, spawnSync } from 'node:child_process';
 import net from 'node:net';
 import path from 'node:path';
@@ -6,9 +7,11 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const widgetRoot = path.join(root, 'src', 'widgets');
-const mcpPort = 3100;
-const widgetPort = 3101;
-const host = '127.0.0.1';
+const mcpPort = Number(process.env.MCP_DEV_PORT || 3100);
+const widgetPort = Number(process.env.WIDGET_DEV_PORT || 3101);
+const host = process.env.HOST || '127.0.0.1';
+const browserHost = host === '0.0.0.0' || host === '::' ? 'localhost' : host;
+const appUrl = `http://${browserHost}:${widgetPort}`;
 const children = [];
 let shuttingDown = false;
 
@@ -55,9 +58,8 @@ try {
   if (compile.status !== 0) process.exit(compile.status || 1);
 
   console.log('\nQuick TDS development services');
-  console.log(`  App UI:       http://${host}:${widgetPort}`);
-  console.log(`  MCP overview: http://${host}:${mcpPort}`);
-  console.log(`  MCP endpoint: http://${host}:${mcpPort}/mcp`);
+  console.log(`  Browser UI:   ${appUrl}`);
+  console.log(`  MCP endpoint: http://${browserHost}:${mcpPort}/mcp`);
   console.log('  Stop all:     Ctrl+C\n');
 
   start('mcp', 'node', ['dist/index.js'], {
@@ -66,7 +68,8 @@ try {
       MCP_TRANSPORT_TYPE: 'http',
       PORT: String(mcpPort),
       HOST: host,
-      RESOURCE_URI: `http://${host}:${mcpPort}`,
+      RESOURCE_URI: `http://${browserHost}:${mcpPort}`,
+      QUICK_TDS_UI_URL: appUrl,
       AUTH_SERVER_URL: process.env.AUTH_SERVER_URL || 'http://localhost:8080/auth'
     }
   });
