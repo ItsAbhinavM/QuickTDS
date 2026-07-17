@@ -1,1 +1,8 @@
 node_modules/
+dist/
+.next/
+out/
+.env
+*.log
+*.sqlite
+*.sqlite3
