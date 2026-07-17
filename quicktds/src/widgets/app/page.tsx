@@ -63,13 +63,6 @@ export default function Home() {
 
   useEffect(() => {
     let cancelled = false;
-<<<<<<< Updated upstream
-=======
-    const client = new Client({ name: 'quick-tds-browser', version: '1.0.0' });
-    const port = process.env.NEXT_PUBLIC_MCP_PORT || '3100';
-    const endpoint = new URL(`${window.location.protocol}//${window.location.hostname}:${port}/mcp`);
-    setEndpointLabel(`${endpoint.host}${endpoint.pathname}`);
->>>>>>> Stashed changes
 
     connectMcpClient().then((client) => {
       if (cancelled) return client.close();
