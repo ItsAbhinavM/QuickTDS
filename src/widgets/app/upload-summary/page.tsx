@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useWidgetSDK } from '@nitrostack/widgets';
-import { EmptyState, Shell } from '../ui';
+import { EmptyState, Shell, useWidgetBridge } from '../ui';
 const mockUploadSummary = {
   workspaceId: "quick-motors-demo",
   company: {
@@ -38,8 +37,7 @@ const filesSchema = [
 ] as const;
 
 export default function UploadSummary() {
-  const sdk = useWidgetSDK();
-  const sdkData = sdk.getToolOutput<UploadOutput>();
+  const { data: sdkData, callTool } = useWidgetBridge<UploadOutput>();
   
   // State for using mock data preview
   const [showMock, setShowMock] = useState(false);
@@ -103,7 +101,7 @@ export default function UploadSummary() {
         ...Object.fromEntries(fileContents)
       };
 
-      const response = (await sdk.callTool('upload_company_data', payload)) as any;
+      const response = (await callTool('upload_company_data', payload)) as any;
       
       if (response.isError) {
         const errMsg = typeof response.content?.[0] === 'object' && response.content[0]?.text
