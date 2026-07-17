@@ -10,6 +10,10 @@ cd quicktds
 npm install
 npm run dev
 ```
+### If NitroStudio is not working
+```
+npx @modelcontextprotocol/inspector npx tsx src/index.ts
+```
 
 OAuth is optional for local development. See `quicktds/OAUTH_SETUP.md` before enabling it
 for a deployment.
