@@ -10,6 +10,30 @@ The Quick TDS MCP server is designed to bridge the gap between raw corporate fin
 
 This project automates the workflow by providing AI models with direct access to structured financial data and the ability to project reconciliation interfaces. The AI can load workspaces, evaluate records, suggest corrections, and verify updates in real-time, drastically reducing the time required to close tax recovery cases.
 
+## Architecture
+```mermaid
+flowchart LR
+    A[AI Agent / LLM] -->|Queries & Function Calls| B[Quick TDS MCP Server]
+
+    B -->|Tool Execution| C[TDS Tools Engine]
+    B -->|Fetch UI| D[Resource Manager]
+    
+    C -->|Analyze Books & 26AS| E[(Financial Data Workspace)]
+    C -->|Calculate & Verify| F[Reconciliation Logic]
+
+    D -->|Request Widget| G[NitroStack Widget Engine]
+    G -->|Render & Inline| H[Self-Contained HTML]
+    
+    E --> C
+    F --> C
+    H --> D
+
+    C -->|Data Response| B
+    D -->|Rich UI Response| B
+
+    B -->|Return to Chat| A
+```
+
 ## Core Capabilities
 
 Quick TDS bridges the gap between raw financial data and AI-driven insights by providing structural tools and visual resources.
