@@ -9,7 +9,7 @@
     "dev:nitro": "nitrostack-cli dev",
     "build:server": "tsc",
     "inspector": "npm run build:server && npx --yes @modelcontextprotocol/inspector -e MCP_TRANSPORT_TYPE=stdio -e NODE_ENV=development node dist/index.js",
-    "build": "nitrostack-cli build",
+    "build": "nitrostack-cli build && node scripts/inline-widget-css.mjs",
     "start": "npm run build && nitrostack-cli start",
     "start:prod": "nitrostack-cli start",
     "test": "npx tsc && node --test test/*.test.mjs",
