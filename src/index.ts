@@ -20,10 +20,27 @@ async function bootstrap() {
     await server.start();
 
     const uiUrl = process.env.QUICK_TDS_UI_URL;
-    if (uiUrl) {
-      server.getHttpTransport()?.getApp?.().get('/', (_request: unknown, response: { redirect(status: number, url: string): void }) => {
-        response.redirect(302, uiUrl);
+    const app = server.getHttpTransport()?.getApp?.();
+    if (app) {
+      // Intercept standard clients hitting /mcp and redirect them to /sse
+      app.use('/mcp', (req: any, res: any, next: any) => {
+        // If it's a GET request expecting text/event-stream, it's likely a standard SSE client
+        if (req.method === 'GET' && req.headers.accept && req.headers.accept.includes('text/event-stream')) {
+          return res.redirect(307, '/sse');
+        }
+        // If it's a POST request from a standard client without a session ID in the body but with it in the query
+        if (req.method === 'POST' && req.query.sessionId) {
+          req.url = req.url.replace('/mcp', '/sse'); // rewrite internal URL
+          return app.handle(req, res); // pass to express router
+        }
+        next();
       });
+
+      if (uiUrl) {
+        app.get('/', (_request: unknown, response: { redirect(status: number, url: string): void }) => {
+          response.redirect(302, uiUrl);
+        });
+      }
     }
   } catch (error) {
     console.error('Failed to start Quick TDS MCP server:', error);
