@@ -1,4 +1,4 @@
-# Quick TDS MCP Server
+# QuickTDS MCP Server
 
 Quick TDS is a high-performance Model Context Protocol (MCP) server built on top of the NitroStack framework. It provides specialized AI agents with tools, resources, and UI widgets to streamline Tax Deducted at Source (TDS) credit reconciliation and recovery workflows.
 
