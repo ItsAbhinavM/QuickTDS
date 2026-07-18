@@ -1,175 +1,113 @@
 # Quick TDS MCP Server
 
-Quick TDS connects invoices, payments, bank receipts, and Form 26AS records to identify
-documentary TDS credit gaps and track them until a refreshed statement resolves the case.
+Quick TDS is a high-performance **Model Context Protocol (MCP)** server built on top of the [@nitrostack/core](https://github.com/nitrostack) framework. It provides specialized AI agents with tools, resources, and UI widgets to streamline **Tax Deducted at Source (TDS) credit reconciliation and recovery workflows**. 
 
-## Included Workflow
+By leveraging MCP, Quick TDS enables large language models (LLMs) to perform complex tax data analysis, load corporate financial documents, identify discrepancies in Form 26AS, and directly render interactive reconciliation reports as rich UI widgets directly in the AI chat interface.
 
-```text
-Upload company data
--> Link invoices, payments, and bank receipts
--> Calculate configured expected TDS
--> Establish documentary withholding
--> Reconcile Form 26AS
--> Create recovery cases
--> Record deductor corrections
--> Upload refreshed Form 26AS
--> Verify resolution
-```
+---
 
-The server persists each workspace under `data/workspaces/` when that directory is writable.
-In read-only containers it falls back to temporary storage. Set `QUICK_TDS_DATA_DIR` only when
-the platform has attached a writable persistent volume at that path. Startup performs a real
-write check and stops with a configuration error if an explicitly configured directory is not
-writable. This JSON store is appropriate for one server instance; it is not a concurrent
-multi-instance database.
+## 🚀 Features
 
-## Install
+- **Universal MCP Server:** Implemented using `@nitrostack/core`, providing robust lifecycle management, logging, and health checks.
+- **Dual HTTP Transports:**
+  - **Streamable HTTP** (`/mcp`): Optimized transport for modern MCP clients (like NitroStudio).
+  - **Legacy SDK SSE** (`/sse`): Standard Server-Sent Events transport for broad compatibility with clients like Claude Desktop and ChatGPT.
+- **Interactive UI Widgets:** Built with Next.js, these widgets are compiled and fully inlined (CSS & JS) into single, sandboxed HTML files, allowing rich user interfaces to be rendered securely inside any MCP client.
+- **OAuth 2.1 Ready:** Built-in support for secure API authentication using JWTs and JWKS validation.
 
-```bash
-npm install
-npm run install:all
-cp .env.example .env
-```
+---
 
-OAuth is disabled by default. See `OAUTH_SETUP.md` before enabling it.
+## 🛠️ Available MCP Capabilities
 
-## Run
+### Tools
+AI Agents can call these tools to perform actions on behalf of the user:
+- `load_quick_tds_demo`: Loads a comprehensive sample workspace (invoices, payments, bank receipts, and Form 26AS data) for testing.
+- `get_tds_workspace`: Retrieves the current state of a TDS reconciliation workspace.
+- `record_tds_correction`: Records a correction for a specific TDS discrepancy.
+- `verify_refreshed_26as`: Verifies whether a refreshed Form 26AS matches the expected corrections.
 
-Start the complete MCP server and widget development environment:
+### Resources & UI Widgets
+The server dynamically provides rendered HTML widgets that the AI can display to the user:
+- `ui://widget/next-upload-summary.html`: Displays an overview of uploaded financial documents.
+- `ui://widget/next-reconciliation.html`: Shows a detailed reconciliation table matching books against Form 26AS.
+- `ui://widget/next-recovery-cases.html`: Visualizes pending tax recovery cases and actionable steps.
+- `ui://widget/next-resolution.html`: Displays resolution outcomes for corrected entries.
+
+---
+
+## 💻 Getting Started
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) v20 or higher
+- npm (comes with Node.js)
+
+### Installation
+
+1. Clone the repository and navigate into it:
+   ```bash
+   cd Quick-TDS-MCP
+   ```
+
+2. Install dependencies for the server:
+   ```bash
+   npm install
+   ```
+
+3. Configure environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+   *(Update the `.env` file with your specific ports or OAuth requirements if needed)*
+
+### Running Locally
+
+To start both the MCP Server and the Next.js Widget Development Server concurrently, run:
 
 ```bash
 npm run dev
 ```
 
-Wait for Next.js to report `Ready`, then open `http://127.0.0.1:3101`. The
-MCP endpoint printed as `http://127.0.0.1:3100/mcp` is for MCP clients and keeps
-an event-stream connection open; it is not the application web page. Browsing
-to `http://127.0.0.1:3100` redirects to the UI during local development.
+The console will output the active endpoints.
 
-The browser UI is itself an MCP client. It can load the demo, call each workflow
-tool, or import company metadata with the seven CSV templates under `fixtures/`.
-Form 26AS CSV is supported; AIS and raw Form 16A/ledger PDF extraction are not
-implemented and are shown as unsupported in the intake screen.
+---
 
-If the server runs in a container or remote VM, bind it externally with:
+## 🔌 Connecting AI Clients (Claude, ChatGPT, etc.)
 
-```bash
-HOST=0.0.0.0 npm run dev
-```
+When configuring your AI client or MCP bridge, make sure you use the correct endpoint.
 
-The development ports can be changed with `MCP_DEV_PORT` and `WIDGET_DEV_PORT`.
+**For Standard Clients (Claude Desktop, ChatGPT, official MCP SDKs):**
+Use the Legacy SSE endpoint:
+👉 `http://127.0.0.1:3100/sse`
 
-Run the MCP Inspector separately with:
+**For NitroStack Clients (NitroStudio):**
+Use the Streamable HTTP endpoint:
+👉 `http://127.0.0.1:3100/mcp`
 
-```bash
-npm run inspector
-```
+> **Note:** If you experience a `Bad Request: no valid session ID provided` error in Claude or ChatGPT, you are likely using the `/mcp` endpoint instead of the required `/sse` endpoint. The server will now automatically attempt to redirect standard SSE traffic to the correct endpoint.
 
-Build and start the production bundle:
+---
 
-```bash
-npm run build
-npm run start:prod
-```
+## 🏗️ Architecture & Development
 
-### NitroCloud Storage
+This project consists of two tightly coupled components:
+1. **The MCP Server (`src/`):** A TypeScript application built with NitroStack. It handles the core MCP protocol, tool execution, and resource serving.
+2. **The Widgets App (`src/widgets/`):** A Next.js application that builds React components into static HTML.
 
-NitroCloud's current public deployment flow does not show a persistent volume mount in its
-generated container. Leave `QUICK_TDS_DATA_DIR` unset so the tools use writable temporary
-storage. Do not set it to `/data/workspaces` unless NitroCloud support or the project dashboard
-has actually attached a writable volume at `/data`.
+### Post-Build Asset Inlining
+Because MCP clients often render UI resources inside sandboxed `<iframe>` elements using `srcdoc`, external CSS and JavaScript files cannot be reliably loaded. 
 
-If NitroCloud provides a volume, set the environment variable to its real mount path, for example:
+To solve this, our build pipeline includes a custom script (`scripts/post-build-widgets.mjs`). When you build the widgets (`npm run build` inside `src/widgets`), this script automatically parses the Next.js HTML output and **inlines** all linked CSS stylesheets and JavaScript chunks directly into the `<head>` and `<body>` of the HTML. This ensures the widgets render perfectly styled, regardless of the client environment.
 
-```text
-QUICK_TDS_DATA_DIR=<actual-volume-mount>/workspaces
-```
+---
 
-A directory path in application code cannot create a cloud volume. Temporary storage allows
-tool execution but can be lost on restart or scale-to-zero. Durable autoscaled deployment
-requires shared database or object storage rather than this local JSON store.
+## 🔐 Security & OAuth
 
-Run only the widget frontend during UI work:
+The server is equipped with enterprise-grade OAuth 2.1 integration.
+To enable authentication, set `OAUTH_REQUIRED=true` in your `.env` file. You will need to provide your Identity Provider details (like `AUTH_SERVER_URL` and either `JWKS_URI` or `INTROSPECTION_ENDPOINT`).
 
-```bash
-npm run widget -- run dev
-```
+When authentication is enabled, the server will enforce token validation on all protected endpoints, ensuring that only authorized users can access sensitive tax data.
 
-Run validation:
+---
 
-```bash
-npm test
-npm run build
-```
-
-The test suite includes a full stdio MCP client run covering initialization,
-tool discovery, the recovery workflow, refreshed Form 26AS, and invalid input.
-
-## Demo Flow
-
-Connect NitroStudio or another MCP client to the running server, then execute these tools
-in order. The default demo workspace is `quick-motors-demo`.
-
-1. `load_quick_tds_demo`
-2. `link_transactions`
-3. `calculate_expected_tds`
-4. `run_26as_reconciliation`
-5. `create_recovery_cases`
-6. `record_tds_correction` when a deductor supplies a correction reference
-7. `verify_refreshed_26as` with `useDemoFixture: true`
-8. `get_tds_workspace` to inspect the final persisted state
-
-A natural-language request that starts the demo is:
-
-```text
-Load the Quick TDS demo in workspace quick-motors-demo, link its transactions,
-calculate expected TDS, reconcile Form 26AS, and create recovery cases.
-```
-
-To verify the demo corrections afterward:
-
-```text
-Verify workspace quick-motors-demo using the refreshed demo Form 26AS.
-```
-
-## Using Company Data
-
-Call `upload_company_data` with a company object and the CSV contents described below.
-The example files in `fixtures/` are directly reusable templates.
-
-| Input | Template |
-|---|---|
-| Company | `fixtures/company.json` |
-| Counterparties and TANs | `fixtures/counterparties.csv` |
-| Bank accounts and deposits | `fixtures/bank-accounts.csv` |
-| Invoices and interest events | `fixtures/invoices.csv` |
-| Payments and documentary TDS | `fixtures/payments.csv` |
-| Invoice/payment allocation | `fixtures/payment-allocations.csv` |
-| Bank receipts | `fixtures/bank-transactions.csv` |
-| Original Form 26AS | `fixtures/form26as.csv` |
-| Refreshed Form 26AS | `fixtures/form26as-refreshed.csv` |
-
-Uploading a dataset replaces that workspace. Use a different workspace ID for each legal
-entity/PAN.
-
-## What The App Calculates
-
-The application maintains three separate amounts:
-
-```text
-Expected TDS             = uploaded TDS base x uploaded reviewed rate
-Documented withholding   = TDS stated in payment evidence
-Recoverable credit gap   = documented withholding - Form 26AS credit
-```
-
-Expected TDS is not an autonomous section or rate determination. The uploader supplies the
-reviewed section, rate, eligible base, and applicability for each income record.
-
-## Current Boundaries
-
-- Form 16A can be represented as the payment evidence type; PDF extraction is not included.
-- Wrong PAN is reported only as suspected when no TAN credit is visible.
-- Deductor correction and TRACES references are recorded manually.
-- The service does not log in to, scrape, or file anything on a government portal.
-- Section 205/401 legal escalation, email automation, and production tax-rule updates are deferred.
+## 📜 License
+© 2026 NitroStack. All rights reserved.
