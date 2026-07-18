@@ -16,6 +16,11 @@ const files = [
   ['form26asCsv', 'Form 26AS', 'form26as.csv']
 ] as const;
 
+const bulkFileAliases: Record<string, string> = {
+  'invoice-ledger.csv': 'invoices.csv',
+  'form26as-original.csv': 'form26as.csv'
+};
+
 const workflow = [
   ['link_transactions', 'Connect', 'Link payments, invoices and bank receipts.'],
   ['calculate_expected_tds', 'Calculate', 'Calculate reviewed expected and documented TDS.'],
@@ -177,9 +182,10 @@ export default function Home() {
     const unrecognized: string[] = [];
     Array.from(selected).forEach((file) => {
       const name = file.name.toLowerCase();
+      const templateName = bulkFileAliases[name.replace(/^\d+[-_]/, '')] || name;
       const definition = files.find(([, , example]) => {
         const expected = example.toLowerCase();
-        return name === expected || name.endsWith(`-${expected}`) || name.endsWith(`_${expected}`);
+        return templateName === expected || templateName.endsWith(`-${expected}`) || templateName.endsWith(`_${expected}`);
       });
       if (definition) matched[definition[0]] = file;
       else unrecognized.push(file.name);
