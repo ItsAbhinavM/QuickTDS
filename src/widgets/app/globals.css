@@ -44,8 +44,14 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .section-heading > p:last-child { color: var(--muted); line-height: 1.6; }
 .upload-form { display: grid; gap: 24px; }
 .company-fields { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-.company-fields label, .file-field { display: grid; gap: 7px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.company-fields label, .file-field, .bulk-file-field { display: grid; gap: 7px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .company-fields input { width: 100%; padding: 12px; border: 1px solid var(--line); color: var(--ink); background: var(--paper-bright); font: inherit; text-transform: none; }
+.bulk-file-field { padding: 18px; grid-template-columns: 1fr auto; align-items: center; border: 1px solid var(--ink); background: #ebe5d8; }
+.bulk-file-field > span { color: var(--ink); font-size: 12px; }
+.bulk-file-field small { font-weight: 400; letter-spacing: 0; line-height: 1.45; text-transform: none; }
+.bulk-file-field input { grid-column: 1; color: var(--ink); font-size: 11px; letter-spacing: 0; text-transform: none; }
+.bulk-file-field strong { grid-column: 2; grid-row: 1 / span 3; padding: 9px 11px; color: var(--green); border: 1px solid currentColor; font-size: 10px; white-space: nowrap; }
+.bulk-file-field .bulk-upload-message { grid-column: 1 / -1; color: var(--ink); }
 .file-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .file-field { min-height: 112px; padding: 15px; justify-content: stretch; border: 1px solid var(--line); background: var(--paper-bright); }
 .file-field small { color: var(--muted); font-size: 10px; font-weight: 400; letter-spacing: 0; text-transform: none; }
@@ -188,6 +194,8 @@ dd { margin: 5px 0 0; font-size: 12px; }
   .preview-notice { align-items: flex-start; flex-direction: column; }
   .preview-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .company-fields, .file-grid { grid-template-columns: 1fr; }
+  .bulk-file-field { grid-template-columns: 1fr; }
+  .bulk-file-field strong { grid-column: 1; grid-row: auto; white-space: normal; }
   .nav-links { display: none; }
   .command-card { align-items: flex-start; flex-direction: column; }
   .command-card button { width: 100%; margin-left: 0; }

@@ -58,6 +58,7 @@ export default function Home() {
   const [workspaceId, setWorkspaceId] = useState('quick-motors-demo');
   const [company, setCompany] = useState({ name: '', pan: '', financialYear: '2025-26' });
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File>>({});
+  const [bulkUploadMessage, setBulkUploadMessage] = useState('');
   const [running, setRunning] = useState('');
   const [result, setResult] = useState<{ toolName: string; data: unknown }>();
   const [error, setError] = useState('');
@@ -169,6 +170,28 @@ export default function Home() {
     }
   }
 
+  function selectDocuments(selected: FileList | null) {
+    if (!selected) return;
+
+    const matched: Record<string, File> = {};
+    const unrecognized: string[] = [];
+    Array.from(selected).forEach((file) => {
+      const name = file.name.toLowerCase();
+      const definition = files.find(([, , example]) => {
+        const expected = example.toLowerCase();
+        return name === expected || name.endsWith(`-${expected}`) || name.endsWith(`_${expected}`);
+      });
+      if (definition) matched[definition[0]] = file;
+      else unrecognized.push(file.name);
+    });
+
+    setSelectedFiles((current) => ({ ...current, ...matched }));
+    const matchedCount = Object.keys(matched).length;
+    setBulkUploadMessage(unrecognized.length
+      ? `${matchedCount} document${matchedCount === 1 ? '' : 's'} matched. Not recognized: ${unrecognized.join(', ')}`
+      : `${matchedCount} document${matchedCount === 1 ? '' : 's'} selected successfully.`);
+  }
+
   return (
     <main className="landing">
       <nav className="topbar">
@@ -202,14 +225,26 @@ export default function Home() {
             <label>PAN<input value={company.pan} onChange={(event) => setCompany({ ...company, pan: event.target.value.toUpperCase() })} required pattern="[A-Z]{5}[0-9]{4}[A-Z]" /></label>
             <label>Financial year<input value={company.financialYear} onChange={(event) => setCompany({ ...company, financialYear: event.target.value })} required pattern="[0-9]{4}-[0-9]{2}" /></label>
           </div>
+          <label className="bulk-file-field">
+            <span>Select all required documents</span>
+            <small>Choose all seven CSV files at once. Files are matched to the templates by filename.</small>
+            <input type="file" accept=".csv,text/csv" multiple onChange={(event) => selectDocuments(event.target.files)} />
+            <strong>{Object.keys(selectedFiles).length} of {files.length} documents ready</strong>
+            {bulkUploadMessage && <small className="bulk-upload-message" aria-live="polite">{bulkUploadMessage}</small>}
+          </label>
           <div className="file-grid">
             {files.map(([key, label, example]) => (
               <label className="file-field" key={key}>
                 <span>{label}</span>
-                <small>CSV · template: {example}</small>
-                <input type="file" accept=".csv,text/csv" required onChange={(event) => {
+                <small>{selectedFiles[key] ? `Selected: ${selectedFiles[key].name}` : `CSV · template: ${example}`}</small>
+                <input type="file" accept=".csv,text/csv" required={!selectedFiles[key]} onChange={(event) => {
                   const file = event.target.files?.[0];
-                  if (file) setSelectedFiles((current) => ({ ...current, [key]: file }));
+                  setSelectedFiles((current) => {
+                    if (file) return { ...current, [key]: file };
+                    const next = { ...current };
+                    delete next[key];
+                    return next;
+                  });
                 }} />
               </label>
             ))}
