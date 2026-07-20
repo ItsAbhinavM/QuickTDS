@@ -9,6 +9,11 @@ By leveraging MCP, Quick TDS enables large language models (LLMs) to perform com
 The Quick TDS MCP server is designed to bridge the gap between raw corporate financial data and actionable AI insights. Reconciling company books with government tax records (such as Form 26AS) is traditionally a manual, error-prone process. 
 
 This project automates the workflow by providing AI models with direct access to structured financial data and the ability to project reconciliation interfaces. The AI can load workspaces, evaluate records, suggest corrections, and verify updates in real-time, drastically reducing the time required to close tax recovery cases.
+### Demo Video
+
+<a href="https://www.youtube.com/watch?v=I60loUw1iKY&t=5s">
+  <img src="https://img.youtube.com/vi/I60loUw1iKY/maxresdefault.jpg" width="560" height="315" alt="Watch the Demo Video">
+</a>
 
 ## Architecture
 ```mermaid
